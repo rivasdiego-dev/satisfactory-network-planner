@@ -120,7 +120,7 @@ const FloatingDockDesktop = ({
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
       className={cn(
-        "mx-auto hidden h-16 items-end gap-4 rounded-2xl bg-gray-50 px-4 pb-3 md:flex dark:bg-neutral-900",
+        "relative z-50 mx-auto hidden h-16 items-end gap-4 overflow-visible rounded-2xl bg-gray-50 px-4 pb-3 md:flex dark:bg-neutral-900",
         className,
       )}
     >
@@ -234,14 +234,14 @@ function IconContainer({
   };
 
   return (
-    <button type="button" onClick={handleClick} disabled={disabled}>
+    <button type="button" onClick={handleClick} disabled={disabled} className="relative">
       <motion.div
         ref={ref}
         style={{ width, height }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         className={cn(
-          "relative flex aspect-square items-center justify-center rounded-full bg-gray-200 dark:bg-neutral-800",
+          "relative flex aspect-square items-center justify-center overflow-visible rounded-full bg-gray-200 dark:bg-neutral-800",
           active && "ring-2 ring-primary ring-offset-2 ring-offset-gray-50 dark:ring-offset-neutral-900",
           disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer",
         )}
@@ -249,10 +249,10 @@ function IconContainer({
         <AnimatePresence>
           {hovered && (
             <motion.div
-              initial={{ opacity: 0, y: 10, x: "-50%" }}
+              initial={{ opacity: 0, y: 4, x: "-50%" }}
               animate={{ opacity: 1, y: 0, x: "-50%" }}
-              exit={{ opacity: 0, y: 2, x: "-50%" }}
-              className="absolute -top-8 left-1/2 w-fit rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs whitespace-pre text-neutral-700 dark:border-neutral-900 dark:bg-neutral-800 dark:text-white"
+              exit={{ opacity: 0, y: 4, x: "-50%" }}
+              className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-fit rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs whitespace-pre text-neutral-700 dark:border-neutral-900 dark:bg-neutral-800 dark:text-white"
             >
               {title}
             </motion.div>
