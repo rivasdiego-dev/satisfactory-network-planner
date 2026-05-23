@@ -14,11 +14,13 @@ import {
 import { useCallback, useEffect, useState } from "react"
 
 import { MapCanvas, getMapCanvasElement } from "./components/MapCanvas"
+import { AboutDialog } from "./components/AboutDialog"
 import LightPillar from "./components/LightPillar"
 import { StatsBar } from "./components/StatsBar"
 import FileUpload from "./components/ui/file-upload"
 import { FloatingDock } from "./components/ui/floating-dock"
 import { useNetworkStore } from "./hooks/useNetworkStore"
+import { useFirstVisitDialog } from "./hooks/useFirstVisitDialog"
 import {
   copyCanvasToClipboard,
   downloadCanvasPng,
@@ -90,6 +92,12 @@ export function App() {
 
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [exportMessage, setExportMessage] = useState<string | null>(null)
+  const {
+    open: aboutOpen,
+    onOpenChange: onAboutOpenChange,
+    openDialog: openAboutDialog,
+    suppressAutoOpen,
+  } = useFirstVisitDialog()
 
   const nodeCount = state.points.filter((p) => p.type === "node").length
   const steinerCount = state.points.filter((p) => p.type === "steiner").length
@@ -170,6 +178,12 @@ export function App() {
 
   return (
     <main className="relative flex h-dvh flex-col overflow-hidden">
+      <AboutDialog
+        open={aboutOpen}
+        onOpenChange={onAboutOpenChange}
+        suppressAutoOpen={suppressAutoOpen}
+      />
+
       <div className="pointer-events-none absolute inset-0 -z-10">
         <LightPillar
           topColor="#A855F7"
@@ -192,7 +206,14 @@ export function App() {
             Ficsit Network Planner
           </p>
           <div className="flex items-center gap-2 border-l px-4">
-            <InfoIcon size={16} className="text-blue-200" />
+            <button
+              type="button"
+              onClick={openAboutDialog}
+              className="rounded-sm text-blue-200 transition-opacity hover:opacity-80"
+              aria-label="About this app"
+            >
+              <InfoIcon size={16} />
+            </button>
             <p>{getStatusText(hasImage, nodeCount, steinerCount, computeStatus)}</p>
           </div>
         </header>
