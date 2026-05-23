@@ -80,20 +80,22 @@ export function AboutDialog({
   const isLast = stepIndex === ONBOARDING_STEPS.length - 1
   const isWelcome = step.id === "welcome"
 
-  useEffect(() => {
-    if (!open) {
-      setStepIndex(0)
-      setDontShowAgain(false)
-    }
-  }, [open])
+  const resetDialogState = () => {
+    setStepIndex(0)
+    setDontShowAgain(false)
+  }
 
   const finish = () => {
     if (dontShowAgain) suppressAutoOpen()
+    resetDialogState()
     onOpenChange(false)
   }
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen && isLast && dontShowAgain) suppressAutoOpen()
+    if (!nextOpen) {
+      if (isLast && dontShowAgain) suppressAutoOpen()
+      resetDialogState()
+    }
     onOpenChange(nextOpen)
   }
 
