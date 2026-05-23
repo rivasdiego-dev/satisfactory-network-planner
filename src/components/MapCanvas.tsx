@@ -155,6 +155,11 @@ function redrawOverlay(
   }
 }
 
+function getFramePadding() {
+  const side = window.matchMedia("(min-width: 768px)").matches ? 16 : 12
+  return { x: side * 2, y: side * 2 }
+}
+
 function fitContain(
   contentWidth: number,
   contentHeight: number,
@@ -261,11 +266,7 @@ export function MapCanvas({
 
     const updateDisplaySize = () => {
       const rect = container.getBoundingClientRect()
-      const style = getComputedStyle(container)
-      const paddingX =
-        parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
-      const paddingY =
-        parseFloat(style.paddingTop) + parseFloat(style.paddingBottom)
+      const { x: paddingX, y: paddingY } = getFramePadding()
 
       setDisplaySize(
         fitContain(
@@ -487,68 +488,71 @@ export function MapCanvas({
   }
 
   const rulerVisible = state.ruler.visible
+  const framePadding = displaySize ? getFramePadding() : null
 
   return (
     <div
       ref={containerRef}
-      className="map-glass-frame relative flex h-full w-full min-h-0 min-w-0 items-center justify-center overflow-hidden p-3 md:p-4"
+      className="flex h-full w-full min-h-0 min-w-0 items-center justify-center"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-2xl border border-white/15 bg-background/25 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-2xl dark:border-white/10 dark:bg-black/30"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-3 rounded-xl bg-gradient-to-br from-white/10 via-white/5 to-transparent dark:from-white/5 dark:via-white/[0.02] dark:to-transparent"
-      />
-      {state.imageDataUrl.startsWith("data:image/png") && (
+      {displaySize && framePadding && (
         <div
-          aria-hidden
-          className="map-transparency-grid pointer-events-none absolute inset-3 rounded-xl opacity-30"
-        />
-      )}
-      {displaySize && (
-        <div
-          className="relative shrink-0"
+          className="map-glass-frame relative shrink-0 overflow-hidden p-3 md:p-4"
           style={{
-            width: displaySize.width,
-            height: displaySize.height,
+            width: displaySize.width + framePadding.x,
+            height: displaySize.height + framePadding.y,
           }}
         >
-          <canvas
-            ref={canvasRef}
-            data-map-canvas
-            width={state.canvasWidth}
-            height={state.canvasHeight}
-            onPointerDown={(e) => handlePointerDown(e, "main")}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerUp}
-            onContextMenu={(e) => e.preventDefault()}
-            className={`relative z-10 block h-full w-full rounded-lg shadow-lg ring-1 ring-white/10 ${isComputing ? "opacity-90" : ""
-              } ${rulerVisible ? "pointer-events-none" : ""}`}
-            style={{ cursor: rulerVisible ? undefined : cursorStyle }}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-2xl border border-white/15 bg-background/25 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-2xl dark:border-white/10 dark:bg-black/30"
           />
-          <canvas
-            ref={overlayRef}
-            width={state.canvasWidth}
-            height={state.canvasHeight}
-            onPointerDown={(e) => handlePointerDown(e, "overlay")}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerUp}
-            onContextMenu={(e) => e.preventDefault()}
-            className={`absolute inset-0 z-20 h-full w-full rounded-lg ${rulerVisible ? "" : "pointer-events-none"
-              }`}
-            style={{ cursor: rulerVisible ? cursorStyle : undefined }}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-3 rounded-xl bg-gradient-to-br from-white/10 via-white/5 to-transparent dark:from-white/5 dark:via-white/[0.02] dark:to-transparent"
           />
-        </div>
-      )}
-      {isComputing && (
-        <div className="pointer-events-none absolute inset-0 z-30 flex items-start justify-center pt-6">
-          <div className="rounded-md border border-border/60 bg-background/90 px-3 py-1.5 text-sm text-muted-foreground shadow-lg backdrop-blur-sm">
-            Calculating network…
+          {state.imageDataUrl.startsWith("data:image/png") && (
+            <div
+              aria-hidden
+              className="map-transparency-grid pointer-events-none absolute inset-3 rounded-xl opacity-30"
+            />
+          )}
+          <div className="relative h-full w-full">
+            <canvas
+              ref={canvasRef}
+              data-map-canvas
+              width={state.canvasWidth}
+              height={state.canvasHeight}
+              onPointerDown={(e) => handlePointerDown(e, "main")}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
+              onContextMenu={(e) => e.preventDefault()}
+              className={`relative z-10 block h-full w-full rounded-lg shadow-lg ring-1 ring-white/10 ${isComputing ? "opacity-90" : ""
+                } ${rulerVisible ? "pointer-events-none" : ""}`}
+              style={{ cursor: rulerVisible ? undefined : cursorStyle }}
+            />
+            <canvas
+              ref={overlayRef}
+              width={state.canvasWidth}
+              height={state.canvasHeight}
+              onPointerDown={(e) => handlePointerDown(e, "overlay")}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
+              onContextMenu={(e) => e.preventDefault()}
+              className={`absolute inset-0 z-20 h-full w-full rounded-lg ${rulerVisible ? "" : "pointer-events-none"
+                }`}
+              style={{ cursor: rulerVisible ? cursorStyle : undefined }}
+            />
           </div>
+          {isComputing && (
+            <div className="pointer-events-none absolute inset-0 z-30 flex items-start justify-center pt-6">
+              <div className="rounded-md border border-border/60 bg-background/90 px-3 py-1.5 text-sm text-muted-foreground shadow-lg backdrop-blur-sm">
+                Calculating network…
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
