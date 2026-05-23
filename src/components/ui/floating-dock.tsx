@@ -18,8 +18,14 @@ import {
 
 import { useRef, useState } from "react";
 
-type FloatingDockItem =
-  | { title: string; icon: React.ReactNode; onClick: () => void }
+export type FloatingDockItem =
+  | {
+      title: string;
+      icon: React.ReactNode;
+      onClick?: () => void;
+      active?: boolean;
+      disabled?: boolean;
+    }
   | { divider: true };
 
 function isDivider(item: FloatingDockItem): item is { divider: true } {
@@ -84,12 +90,7 @@ const FloatingDockMobile = ({
                   }}
                   transition={{ delay: (items.length - 1 - idx) * 0.05 }}
                 >
-                  <a
-                    onClick={item.onClick}
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 dark:bg-neutral-900"
-                  >
-                    <div className="h-4 w-4">{item.icon}</div>
-                  </a>
+                  <DockButton item={item} size="sm" />
                 </motion.div>
               ),
             )}
@@ -139,16 +140,51 @@ const FloatingDockDesktop = ({
   );
 };
 
+function DockButton({
+  item,
+  size = "md",
+}: {
+  item: Extract<FloatingDockItem, { title: string }>;
+  size?: "sm" | "md";
+}) {
+  const handleClick = () => {
+    if (item.disabled) return;
+    item.onClick?.();
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={item.disabled}
+      title={item.title}
+      className={cn(
+        "flex items-center justify-center rounded-full bg-gray-200 dark:bg-neutral-800",
+        size === "sm" ? "h-10 w-10" : "h-12 w-12",
+        item.active && "ring-2 ring-primary ring-offset-2 ring-offset-gray-50 dark:ring-offset-neutral-900",
+        item.disabled && "cursor-not-allowed opacity-40",
+        !item.disabled && "cursor-pointer",
+      )}
+    >
+      <div className={size === "sm" ? "h-4 w-4" : "h-5 w-5"}>{item.icon}</div>
+    </button>
+  );
+}
+
 function IconContainer({
   mouseX,
   title,
   icon,
   onClick,
+  active,
+  disabled,
 }: {
   mouseX: MotionValue;
   title: string;
   icon: React.ReactNode;
-  onClick: () => void;
+  onClick?: () => void;
+  active?: boolean;
+  disabled?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -192,14 +228,23 @@ function IconContainer({
 
   const [hovered, setHovered] = useState(false);
 
+  const handleClick = () => {
+    if (disabled) return;
+    onClick?.();
+  };
+
   return (
-    <a onClick={onClick}>
+    <button type="button" onClick={handleClick} disabled={disabled}>
       <motion.div
         ref={ref}
         style={{ width, height }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="relative flex aspect-square items-center justify-center rounded-full bg-gray-200 dark:bg-neutral-800 cursor-pointer"
+        className={cn(
+          "relative flex aspect-square items-center justify-center rounded-full bg-gray-200 dark:bg-neutral-800",
+          active && "ring-2 ring-primary ring-offset-2 ring-offset-gray-50 dark:ring-offset-neutral-900",
+          disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer",
+        )}
       >
         <AnimatePresence>
           {hovered && (
@@ -220,6 +265,6 @@ function IconContainer({
           {icon}
         </motion.div>
       </motion.div>
-    </a>
+    </button>
   );
 }
