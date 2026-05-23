@@ -155,6 +155,32 @@ function redrawOverlay(
   }
 }
 
+function fitContain(
+  contentWidth: number,
+  contentHeight: number,
+  boundsWidth: number,
+  boundsHeight: number,
+): { width: number; height: number } {
+  if (
+    contentWidth <= 0 ||
+    contentHeight <= 0 ||
+    boundsWidth <= 0 ||
+    boundsHeight <= 0
+  ) {
+    return { width: contentWidth, height: contentHeight }
+  }
+
+  const scale = Math.min(
+    boundsWidth / contentWidth,
+    boundsHeight / contentHeight,
+  )
+
+  return {
+    width: Math.floor(contentWidth * scale),
+    height: Math.floor(contentHeight * scale),
+  }
+}
+
 export function MapCanvas({
   state,
   isComputing = false,
@@ -175,6 +201,11 @@ export function MapCanvas({
     projection: { x: number; y: number }
   } | null>(null)
   const imageRef = useRef<HTMLImageElement | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [displaySize, setDisplaySize] = useState<{
+    width: number
+    height: number
+  } | null>(null)
   const [cursorStyle, setCursorStyle] = useState("crosshair")
 
   const getActiveRuler = useCallback((): RulerState => {
@@ -220,6 +251,37 @@ export function MapCanvas({
   useEffect(() => {
     triggerRedraw()
   }, [triggerRedraw, state.ruler])
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || !state.imageDataUrl) {
+      setDisplaySize(null)
+      return
+    }
+
+    const updateDisplaySize = () => {
+      const rect = container.getBoundingClientRect()
+      const style = getComputedStyle(container)
+      const paddingX =
+        parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
+      const paddingY =
+        parseFloat(style.paddingTop) + parseFloat(style.paddingBottom)
+
+      setDisplaySize(
+        fitContain(
+          state.canvasWidth,
+          state.canvasHeight,
+          rect.width - paddingX,
+          rect.height - paddingY,
+        ),
+      )
+    }
+
+    updateDisplaySize()
+    const observer = new ResizeObserver(updateDisplaySize)
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [state.canvasWidth, state.canvasHeight, state.imageDataUrl])
 
   const toCanvasCoords = useCallback(
     (clientX: number, clientY: number) => {
@@ -427,7 +489,10 @@ export function MapCanvas({
   const rulerVisible = state.ruler.visible
 
   return (
-    <div className="map-glass-frame relative flex max-h-full max-w-full items-center justify-center p-3 md:p-4">
+    <div
+      ref={containerRef}
+      className="map-glass-frame relative flex h-full w-full min-h-0 min-w-0 items-center justify-center overflow-hidden p-3 md:p-4"
+    >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 rounded-2xl border border-white/15 bg-background/25 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-2xl dark:border-white/10 dark:bg-black/30"
@@ -442,37 +507,43 @@ export function MapCanvas({
           className="map-transparency-grid pointer-events-none absolute inset-3 rounded-xl opacity-30"
         />
       )}
-      <div className="relative inline-block max-h-full max-w-full">
-        <canvas
-          ref={canvasRef}
-          data-map-canvas
-          width={state.canvasWidth}
-          height={state.canvasHeight}
-          onPointerDown={(e) => handlePointerDown(e, "main")}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-          onContextMenu={(e) => e.preventDefault()}
-          className={`relative z-10 block max-h-full max-w-full rounded-lg object-contain shadow-lg ring-1 ring-white/10 ${
-            isComputing ? "opacity-90" : ""
-          } ${rulerVisible ? "pointer-events-none" : ""}`}
-          style={{ cursor: rulerVisible ? undefined : cursorStyle }}
-        />
-        <canvas
-          ref={overlayRef}
-          width={state.canvasWidth}
-          height={state.canvasHeight}
-          onPointerDown={(e) => handlePointerDown(e, "overlay")}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-          onContextMenu={(e) => e.preventDefault()}
-          className={`absolute inset-0 z-20 max-h-full max-w-full rounded-lg ${
-            rulerVisible ? "" : "pointer-events-none"
-          }`}
-          style={{ cursor: rulerVisible ? cursorStyle : undefined }}
-        />
-      </div>
+      {displaySize && (
+        <div
+          className="relative shrink-0"
+          style={{
+            width: displaySize.width,
+            height: displaySize.height,
+          }}
+        >
+          <canvas
+            ref={canvasRef}
+            data-map-canvas
+            width={state.canvasWidth}
+            height={state.canvasHeight}
+            onPointerDown={(e) => handlePointerDown(e, "main")}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            onContextMenu={(e) => e.preventDefault()}
+            className={`relative z-10 block h-full w-full rounded-lg shadow-lg ring-1 ring-white/10 ${isComputing ? "opacity-90" : ""
+              } ${rulerVisible ? "pointer-events-none" : ""}`}
+            style={{ cursor: rulerVisible ? undefined : cursorStyle }}
+          />
+          <canvas
+            ref={overlayRef}
+            width={state.canvasWidth}
+            height={state.canvasHeight}
+            onPointerDown={(e) => handlePointerDown(e, "overlay")}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            onContextMenu={(e) => e.preventDefault()}
+            className={`absolute inset-0 z-20 h-full w-full rounded-lg ${rulerVisible ? "" : "pointer-events-none"
+              }`}
+            style={{ cursor: rulerVisible ? cursorStyle : undefined }}
+          />
+        </div>
+      )}
       {isComputing && (
         <div className="pointer-events-none absolute inset-0 z-30 flex items-start justify-center pt-6">
           <div className="rounded-md border border-border/60 bg-background/90 px-3 py-1.5 text-sm text-muted-foreground shadow-lg backdrop-blur-sm">

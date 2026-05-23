@@ -209,7 +209,7 @@ export function App() {
                 computeError={computeError}
                 computeMode={computeMode}
               />
-              <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
+              <div className="flex min-h-0 flex-1 w-full items-center justify-center overflow-hidden">
                 <MapCanvas
                   state={state}
                   isComputing={computeStatus === "computing"}
