@@ -1,4 +1,4 @@
-# Ficsit Network Planner
+# Satisfactory Network Planner
 
 **Plan your conveyor and pipeline networks before you build.**
 

@@ -10,7 +10,7 @@ import {
   Wrench,
   X,
 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import BorderGlow from "@/components/BorderGlow"
 import {
@@ -157,7 +157,7 @@ export function AboutDialog({
                   <DialogTitle className="font-heading mt-4 text-xl leading-tight font-semibold tracking-wider text-primary uppercase">
                     {isWelcome ? (
                       <>
-                        Ficsit Network
+                        Satisfactory Network
                         <br />
                         Planner
                       </>
@@ -181,6 +181,18 @@ export function AboutDialog({
                       <Wrench className="size-3.5 shrink-0" />
                       Free Forever
                     </div>
+                  </div>
+                )}
+
+                {isWelcome && (
+                  <div className="mt-3 text-xs text-muted-foreground text-justify">
+                    <span className="font-bold block">
+                      Disclaimer
+                    </span>
+                    This tool is not affiliated with or endorsed by {' '}
+                    <a className="underline" href="https://www.coffeestain.com/" target="_blank" rel="noopener noreferrer">Coffee Stain Studios</a>.
+                    If you are a fan of the game, please support the developers by buying the game. <br /> Visit the official website at {' '}
+                    <a className="underline" href="https://satisfactorygame.com" target="_blank" rel="noopener noreferrer">satisfactorygame.com</a>.
                   </div>
                 )}
 

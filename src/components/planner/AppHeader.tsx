@@ -9,7 +9,7 @@ export function AppHeader({ statusText, onAboutClick }: AppHeaderProps) {
   return (
     <header className="flex shrink-0 gap-3 bg-accent p-4">
       <p className="text-3xl tracking-tight text-primary uppercase">
-        Ficsit Network Planner
+        F.I.C.S.I.T Inc.
       </p>
       <div className="flex items-center gap-2 border-l px-4">
         <button

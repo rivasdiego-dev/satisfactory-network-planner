@@ -17,7 +17,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: "welcome",
     label: "Welcome",
-    title: "Ficsit Network Planner",
+    title: "Satisfactory Network Planner",
     body: APP_TAGLINE,
   },
   {
